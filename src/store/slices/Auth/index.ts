@@ -1,25 +1,22 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { initialState } from "../../../pages/Login/infrastructure/state";
+import { setState } from "../../common/reducers/setState";
+import { IUser } from "@/pages/Dashboard/domain/User.entity";
+interface iInitialState extends Record<string, unknown> {
+  user:  IUser | null,
+  token: string;
+}
 
-export const { reducer: AuthSlice, actions } = createSlice({
+const initialState: iInitialState = {
+  user: null,
+  token: ""
+}
+export const { reducer: AuthSlice, actions: AuthActions } = createSlice({
   name: "Auth",
   initialState,
   reducers: {
-    setForm: (state, action: PayloadAction<{ username: string; password: string; }> ) => {
-      state.loginForm.username = action.payload.username as string;
-      state.loginForm.password = action.payload.password as string;
-    },
-    // login: (state, action: PayloadAction<{ username: string; password: string; }> ) => {
-      // state.loginForm.username = action.payload.username as string;
-      // state.loginForm.password = action.payload.password as string;
-      // state.isAuth = true;
-    // },
-    logout: (state) => {
-      state.loginForm.username = "";
-      state.loginForm.password = "";
-      state.isAuth = false;
+    init: () => initialState,
+    setState: (state: iInitialState, action: PayloadAction<Partial<iInitialState>> ) => {
+      setState(state, action, initialState);
     },
   },
 });
-
-export const { logout, setForm } = actions;
