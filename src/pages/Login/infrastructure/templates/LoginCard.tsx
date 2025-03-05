@@ -1,26 +1,17 @@
+import CustomCard from "@/components/CustomCard";
 import { Button, IconButton, InputAdornment, TextField } from "@mui/material";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux-toolkit";
 import { LoginActions } from "@/store/slices/Login";
 import { AuthActions } from "@/store/slices/Auth";
-import CustomCard from "@/components/CustomCard";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
-import useHttp from "@/adapters/axiosAdapter/axiosAdapter";
 import { AxiosError } from "axios";
-import { useEffect } from "react";
+import { userRepository } from "@/shared/repository";
 
 const LoginCard = () => {
   const { loginForm, showPassword } = useAppSelector((state) => state.Login);
   const navigate = useNavigate()
-  const { httpPost } = useHttp();
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      dispatch(AuthActions.setState({ token }));
-    }
-  }, [dispatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(
@@ -34,14 +25,23 @@ const LoginCard = () => {
   };
   const handleLogin = async () => {
     try {
-      const response = await httpPost({ url: `/users/login`, body: loginForm})
-      dispatch(AuthActions.setState({ token: response.token }))
+      const response = await userRepository.login(loginForm)
       localStorage.setItem("token", response.token)
-      const userLogged = await httpPost({ url: `/users/logged-user` })
+      const userLogged = await userRepository.getLoggedUser();
+      console.log(userLogged);
       dispatch(AuthActions.setState({ user: userLogged }))
       navigate("/")
     } catch (error: unknown) {
-      if(error instanceof AxiosError) console.log(error.response?.data);
+      if(error instanceof AxiosError) {
+        const errors = Object.values(error.response?.data) as Array<string[]>
+        console.log(errors);
+        const messages = errors.reduce((result: string, value) => {
+          const message = value.join(", ");
+          result += `\n ${message}`
+          return result;
+        }, "")
+        dispatch(LoginActions.setState({ showSnackbar: { type: "error", isOpen: true, message: messages } }))
+      }
       console.log(error);
     }
   };

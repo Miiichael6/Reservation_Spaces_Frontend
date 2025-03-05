@@ -4,7 +4,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 
 const CustomCard = ({ className, children } :Props) => {
   return (
-    <div className={`bg-gray-100 px-3 rounded-md ${className}`}>
+    <div className={`bg-gray-100 rounded-md ${className}`}>
         {children}
     </div>
   );

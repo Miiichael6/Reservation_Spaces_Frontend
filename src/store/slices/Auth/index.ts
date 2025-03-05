@@ -3,12 +3,10 @@ import { setState } from "../../common/reducers/setState";
 import { IUser } from "@/pages/Dashboard/domain/User.entity";
 interface iInitialState extends Record<string, unknown> {
   user:  IUser | null,
-  token: string;
 }
 
 const initialState: iInitialState = {
   user: null,
-  token: ""
 }
 export const { reducer: AuthSlice, actions: AuthActions } = createSlice({
   name: "Auth",

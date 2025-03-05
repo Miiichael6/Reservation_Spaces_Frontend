@@ -14,30 +14,28 @@ import {
   IReservation,
   IReservationSave,
 } from "../../domain/Reservation.entity";
-import { ReservationRepository } from "../ReservationRepository";
+import { reservationRepository } from "@/shared/repository/ReservationRepository";
 import { AxiosError } from "axios";
-import { SlotRepository } from "../SlotRepository";
-import { useAppSelector } from "@/hooks/redux-toolkit";
+import { slotRepository } from "@/shared/repository";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux-toolkit";
+import { DashboardActions } from "@/store/slices/Dashboard";
 interface SlotItemProps {
   slot: IBooking;
-  allSlots?: IBooking[];
-  setSlots: (item: IBooking[]) => void;
 }
 
-const SlotItem = ({ slot, setSlots }: SlotItemProps) => {
-  const { user } = useAppSelector((state) => state.Auth);
+const SlotItem = ({ slot }: SlotItemProps) => {
   const [expanded, setExpanded] = useState(false);
+  const { user } = useAppSelector((state) => state.Auth);
+  const dispatch = useAppDispatch()
   const handleToggle = () => setExpanded(!expanded);
 
   const handleQuitSlotReservation = async (selectedSlot: IBooking) => {
     try {
-      console.log(selectedSlot);
       const reservated = selectedSlot.reservation.find(res => res.user?.id === user?.id)
       if(!reservated) throw new Error("user didn't make a reservation in this slot");
-  
-      await ReservationRepository.quitSlotReservation({ reservation_id: reservated.id })
-      const slotsRes = await SlotRepository.getAll();
-      setSlots(slotsRes);
+      await reservationRepository.quitSlotReservation({ reservation_id: reservated.id })
+      const slotsRes = await slotRepository.getAll();
+      dispatch(DashboardActions.setState({ slots: slotsRes }));
     } catch (error) {
       if (error instanceof AxiosError) return console.log(error.response?.data);
       console.log(error);
@@ -53,9 +51,9 @@ const SlotItem = ({ slot, setSlots }: SlotItemProps) => {
       reservationSave.reservation.reserved_hour.hour_end =
         selectedSlot.hour_end;
 
-      await ReservationRepository.makeSlotReservation(reservationSave);
-      const slotsRes = await SlotRepository.getAll();
-      setSlots(slotsRes);
+      await reservationRepository.makeSlotReservation(reservationSave);
+      const slotsRes = await slotRepository.getAll();
+      dispatch(DashboardActions.setState({ slots: slotsRes }));
     } catch (error) {
       if (error instanceof AxiosError) return console.log(error.response?.data);
       console.log(error);
@@ -65,7 +63,7 @@ const SlotItem = ({ slot, setSlots }: SlotItemProps) => {
   return (
     <Card
       sx={{
-        bgcolor: "#323232",
+        bgcolor: "#2A2F36",
         borderRadius: 2,
         boxShadow: 3,
         marginBottom: 1,
@@ -74,16 +72,7 @@ const SlotItem = ({ slot, setSlots }: SlotItemProps) => {
       }}
       onClick={handleToggle}
     >
-      <Box
-        sx={{
-          color: "white",
-          p: 1.5,
-          borderRadius: "8px 8px 0 0",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={{ color: "white", p: 1.5, borderRadius: "8px 8px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center", }}>
       <Typography variant="h6">
         <b>from</b> {slot.hour_start}:00 <b>to</b> {slot.hour_end}:00
       </Typography>

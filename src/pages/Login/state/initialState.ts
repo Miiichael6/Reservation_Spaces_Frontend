@@ -3,5 +3,6 @@ import { iLoginState } from "./interfaces/iLoginState";
 export const initialState: iLoginState = {
     isAuth: false,
     showPassword: false,
-    loginForm: { password: "", email: "" }
+    loginForm: { password: "", email: "" },
+    showSnackbar: { type: "error", isOpen: false },
 }
